@@ -40,6 +40,10 @@ export interface BusinessSettings {
   telegramChatId: string | null;
   telegramWelcomeMsg: string | null;
   telegramRewardMsg: string | null;
+  // WhatsApp CallMeBot
+  whatsappApiUrl: string | null;
+  whatsappApiKey: string | null;
+  whatsappPhone: string | null;
   // Anti-cheat
   cooldownMinutes: number;
   maxPointsPerDay: number;
@@ -67,6 +71,8 @@ export interface Customer {
   name: string;
   email: string;
   phone: string | null;
+  telegramChatId: string | null;
+  whatsappPhone: string | null;
   totalPoints: number;
   visitsCount: number;
   businessId: string;
@@ -162,6 +168,9 @@ export interface Invoice {
   dueDate: string | null;
   dueHour: string | null;
   message: string | null;
+  customerIds: string | null;
+  reminderSent: boolean;
+  reminderSentAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -265,6 +274,8 @@ export interface CreateCustomerPayload {
   name: string;
   email: string;
   phone?: string;
+  telegramChatId?: string;
+  whatsappPhone?: string;
 }
 
 export interface CreateRewardPayload {
@@ -307,6 +318,10 @@ export interface UpdateBusinessSettingsPayload {
   telegramChatId?: string;
   telegramWelcomeMsg?: string;
   telegramRewardMsg?: string;
+  // WhatsApp CallMeBot
+  whatsappApiUrl?: string;
+  whatsappApiKey?: string;
+  whatsappPhone?: string;
   cooldownMinutes?: number;
   maxPointsPerDay?: number;
   maxPointsPerVisit?: number;

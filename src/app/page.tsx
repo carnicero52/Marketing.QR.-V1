@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useSyncExternalStore } from 'react'
 import { useAuthStore } from '@/store/auth-store'
 import { useAppStore } from '@/store/app-store'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -10,18 +10,16 @@ import { RegisterView } from '@/components/views/register-view'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { CustomerPortalView } from '@/components/views/customer-portal-view'
 
-function getInitialPortalSlug(): string | null {
-  if (typeof window !== 'undefined') {
-    try {
-      const params = new URLSearchParams(window.location.search)
-      return params.get('portal')
-    } catch {}
-  }
-  return null
+function useMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 }
 
 function usePortalSlug() {
-  const [portalSlug, setPortalSlug] = useState<string | null>(getInitialPortalSlug)
+  const [portalSlug, setPortalSlug] = useState<string | null>(null)
 
   useEffect(() => {
     const checkSlug = () => {
@@ -44,8 +42,14 @@ export default function Home() {
   const { isAuthenticated } = useAuthStore()
   const { currentView } = useAppStore()
   const portalSlug = usePortalSlug()
+  const mounted = useMounted()
 
-  // If ?portal=slug is in the URL → ALWAYS show customer portal (even if logged in as admin)
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-background" />
+    )
+  }
+
   if (portalSlug) {
     return (
       <motion.div
@@ -59,7 +63,6 @@ export default function Home() {
     )
   }
 
-  // If not authenticated, show public views
   if (!isAuthenticated) {
     return (
       <AnimatePresence mode="wait">
@@ -78,6 +81,5 @@ export default function Home() {
     )
   }
 
-  // Authenticated views use dashboard layout
   return <DashboardLayout />
 }

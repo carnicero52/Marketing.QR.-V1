@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Users, Star, ShoppingBag, Gift, TrendingUp, UserPlus, ArrowUpRight, ArrowDownRight, Store } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { api } from '@/lib/api'
 import { useAppStore } from '@/store/app-store'
+import { useAutoRefresh } from '@/hooks/use-auto-refresh'
 import type { DashboardStats, Transaction, Business } from '@/lib/types'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -50,28 +51,32 @@ export function DashboardView() {
   const [loading, setLoading] = useState(true)
   const { setCustomerDetail } = useAppStore()
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [bizRes, statsRes, chartRes] = await Promise.all([
-          api.getBusiness(),
-          api.getDashboardStats(),
-          api.getDashboardChart(),
-        ])
-        setBusiness(bizRes.data)
-        setStats(statsRes.data)
-        setChartData(chartRes.data)
+  const fetchData = useCallback(async () => {
+    try {
+      const [bizRes, statsRes, chartRes] = await Promise.all([
+        api.getBusiness(),
+        api.getDashboardStats(),
+        api.getDashboardChart(),
+      ])
+      setBusiness(bizRes.data)
+      setStats(statsRes.data)
+      setChartData(chartRes.data)
 
-        const txRes = await api.getTransactions({ page: '1', limit: '5' })
-        setRecentTransactions(txRes.data)
-      } catch {
-        // silently handle
-      } finally {
-        setLoading(false)
-      }
+      const txRes = await api.getTransactions({ page: '1', limit: '5' })
+      setRecentTransactions(txRes.data)
+    } catch {
+      // silently handle
+    } finally {
+      setLoading(false)
     }
-    fetchData()
   }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  // Auto-refresh every 10 seconds
+  useAutoRefresh(fetchData)
 
   // Fetch promoMessage (slogan) from settings
   const [promoMessage, setPromoMessage] = useState<string | null>(null)
